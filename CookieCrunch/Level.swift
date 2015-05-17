@@ -36,6 +36,8 @@ class Level {
                     
                     let cookie = Cookie(column: column, row: row, cookieType: cookieType)
                     
+                    cookies[column, row] = cookie
+                    
                     set.insert(cookie)
                 }
             }

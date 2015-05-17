@@ -2,6 +2,8 @@ import SpriteKit
 
 class GameScene : SKScene {
     var level: Level!
+    var swipeFromColumn: Int?
+    var swipeFromRow: Int?
     
     let TileWidth: CGFloat = 32.0
     let TileHeight: CGFloat = 36.0
@@ -16,6 +18,8 @@ class GameScene : SKScene {
     
     override init(size: CGSize) {
         super.init(size: size)
+        
+        println("init")
         
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
@@ -33,6 +37,85 @@ class GameScene : SKScene {
         
         cookiesLayer.position = layerPosition
         gameLayer.addChild(cookiesLayer)
+        
+        swipeFromColumn = nil
+        swipeFromRow = nil
+    }
+    
+    override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+        let touch = touches.first as! UITouch
+        let location = touch.locationInNode(cookiesLayer)
+        let (success, column, row) = convertPoint(location)
+        if success {
+            if let cookie = level.cookieAtColumn(column, row: row) {
+                
+                swipeFromColumn = column
+                swipeFromRow = row
+            }
+        }
+    }
+    
+    override func touchesMoved(touches: Set<NSObject>, withEvent event: UIEvent) {
+        if swipeFromColumn == nil { return }
+        let touch = touches.first as! UITouch
+        let location = touch.locationInNode(cookiesLayer)
+        let (success, column, row) = convertPoint(location)
+        if success {
+            var horzDelta = 0, vertDelta = 0
+            if column < swipeFromColumn! {
+                // swipe left
+                horzDelta = -1
+            } else if column > swipeFromColumn! {
+                // swipe right
+                horzDelta = 1
+            } else if row < swipeFromRow! {
+                // swipe down
+                vertDelta = -1
+            } else if row > swipeFromRow! {
+                // swipe up
+                vertDelta = 1
+            }
+            
+            if horzDelta != 0 || vertDelta != 0 {
+                trySwapHorizontal(horzDelta, vertical: vertDelta)
+
+                swipeFromColumn = nil
+            }
+        }
+    }
+    
+    override func touchesEnded(touches: Set<NSObject>, withEvent event: UIEvent) {
+        swipeFromRow = nil
+        swipeFromColumn = nil
+    }
+    
+    override func touchesCancelled(touches: Set<NSObject>!, withEvent event: UIEvent!) {
+        touchesEnded(touches, withEvent: event)
+    }
+    
+    func trySwapHorizontal(horzDelta: Int, vertical vertDelta: Int) {
+        // 1
+        let toColumn = swipeFromColumn! + horzDelta
+        let toRow = swipeFromRow! + vertDelta
+        // 2
+        if toColumn < 0 || toColumn >= NumColumns { return }
+        if toRow < 0 || toRow >= NumRows { return }
+        // 3
+        if let toCookie = level.cookieAtColumn(toColumn, row: toRow) {
+            if let fromCookie = level.cookieAtColumn(swipeFromColumn!, row: swipeFromRow!) {
+                // 4
+                println("*** swapping \(fromCookie) with \(toCookie)")
+            }
+        }
+    }
+    
+    func convertPoint(point: CGPoint) -> (success: Bool, column: Int, row: Int) {
+        if point.x >= 0 && point.x < CGFloat(NumColumns)*TileWidth &&
+            point.y >= 0 && point.y < CGFloat(NumRows)*TileHeight {
+            return (true, Int(point.x / TileWidth), Int(point.y / TileHeight))
+        } else {
+            return (false, 0, 0) // invalid location
+        }
     }
     
     func addSpritesForCookies(cookies: Set<Cookie>) {
@@ -61,4 +144,5 @@ class GameScene : SKScene {
             }
         }
     }
+    
 }
