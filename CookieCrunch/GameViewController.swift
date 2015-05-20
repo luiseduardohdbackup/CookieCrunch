@@ -30,7 +30,9 @@ class GameViewController : UIViewController {
         scene.scaleMode = .AspectFill
         
         level = Level(filename: "Level_1")
+
         scene.level = level
+        scene.swipeHandler = handleSwipe
         
         scene.addTiles()
         
@@ -47,5 +49,15 @@ class GameViewController : UIViewController {
     func shuffle() {
         let newCookies = level.shuffle()
         scene.addSpritesForCookies(newCookies)
+    }
+    
+    func handleSwipe(swap: Swap) {
+        view.userInteractionEnabled = false
+        
+        level.performSwap(swap)
+        
+        scene.animateSwap(swap, completion: {
+            self.view.userInteractionEnabled = true
+        })
     }
 }
