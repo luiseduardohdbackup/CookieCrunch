@@ -92,7 +92,7 @@ class GameScene : SKScene {
             selectionSprite.removeFromParent()
         }
         swipeFromRow = nil
-        swipeFromColumn = nil        
+        swipeFromColumn = nil
     }
     
     override func touchesCancelled(touches: Set<NSObject>!, withEvent event: UIEvent!) {
